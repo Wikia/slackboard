@@ -78,6 +78,8 @@ func sendNotification2Slack(payload *SlackPayload, sync bool) (int, error) {
 		Timeout: 30 * time.Second,
 	}
 
+	LogError.Debug("stringsNewReader: ", strings.NewReader(string(body)))
+
 	resp, err := client.Post(
 		ConfSlackboard.Core.SlackURL,
 		"application/json",
@@ -90,6 +92,8 @@ func sendNotification2Slack(payload *SlackPayload, sync bool) (int, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
+		respBody, _ := ioutil.ReadAll(resp.Body)
+		LogError.Debug("Response: ", string(respBody))
 		return http.StatusBadGateway, fmt.Errorf("Slack is not available:%s", resp.Status)
 	}
 
@@ -202,12 +206,14 @@ func NotifyDirectlyHandler(w http.ResponseWriter, r *http.Request) {
 	LogError.Debug("parse request body")
 	var req SlackboardDirectPayload
 	reqBody, err := ioutil.ReadAll(r.Body)
+	LogError.Debug("reqBody:", string(reqBody))
 	if err != nil {
 		LogAcceptedRequest(r, "")
 		sendResponse(w, "failed to read request-body", http.StatusInternalServerError)
 		return
 	}
-	err = json.Unmarshal(reqBody, &req)
+	err = json.Unmarshal(reqBody, &req.Payload)
+	LogError.Debug("reqBody JSON:", string(req))
 	if err != nil {
 		LogAcceptedRequest(r, "")
 		sendResponse(w, "Request-body is malformed", http.StatusBadRequest)
