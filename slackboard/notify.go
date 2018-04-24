@@ -213,7 +213,6 @@ func NotifyDirectlyHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	err = json.Unmarshal(reqBody, &req.Payload)
-	LogError.Debug("reqBody JSON:", string(req))
 	if err != nil {
 		LogAcceptedRequest(r, "")
 		sendResponse(w, "Request-body is malformed", http.StatusBadRequest)

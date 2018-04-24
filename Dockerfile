@@ -1,3 +1,11 @@
+FROM golang:1.10.1-stretch as builder
+
+COPY . /go/src/github.com/cubicdaiya/slackboard
+
+WORKDIR /go/src/github.com/cubicdaiya/slackboard
+RUN go get ./slackboard && \
+    make bin/slackboard
+
 FROM debian:stretch-slim
 
 ENV SLACK_URL https://SLACK_URL
@@ -10,7 +18,7 @@ RUN apt-get update && \
     apt-get install -y ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
-COPY bin/slackboard /usr/local/bin/slackboard
+COPY --from=builder /go/src/github.com/cubicdaiya/slackboard/bin/slackboard /usr/local/bin/slackboard
 COPY entrypoint.sh /entrypoint.sh
 COPY slackboard.toml /slackboard.toml
 
